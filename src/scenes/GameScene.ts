@@ -5,6 +5,7 @@ export default class GameScene extends Phaser.Scene {
 	cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	bullets!: Phaser.Physics.Arcade.Group;
 	enemies!: Phaser.Physics.Arcade.Group;
+	infoText!: Phaser.GameObjects.Text;
 
 	playerVelocityX: number = 0;
 	playerVelocityY: number = 0;
@@ -25,6 +26,22 @@ export default class GameScene extends Phaser.Scene {
 		super({ key: 'GameScene' });
 	}
 
+	resetGame() {
+		// player 상태 초기화
+		this.playerVelocityX = 0;
+		this.playerVelocityY = 0;
+		this.player.setPosition(
+			this.game.scale.width / 2,
+			this.game.scale.height / 2
+		);
+		// player의 HP 초기화는 player 객체에 setData를 사용하여 설정하는 것으로 가정합니다.
+		this.player.setData('hp', 10);
+		this.playerHp = this.player.getData('hp');
+
+		this.elapsedTime = 0;
+		this.enemyKilled = 0;
+	}
+
 	preload() {
 		// this.load.image('player', 'path_to_player_image.png');
 		this.load.image('bullet', 'path_to_bullet_image.png');
@@ -43,7 +60,6 @@ export default class GameScene extends Phaser.Scene {
 		const gameHeight = this.game.scale.height;
 
 		// 3x3 그리드 배경 초기화
-
 		const backgroundImage = this.textures.get('background').getSourceImage();
 		const originalWidth = backgroundImage.width;
 		const originalHeight = backgroundImage.height;
@@ -140,7 +156,7 @@ export default class GameScene extends Phaser.Scene {
 
 		// 적 생성 로직 (예: 일정 시간 간격으로 화면 사방에서 생성)
 		this.time.addEvent({
-			delay: 300,
+			delay: Phaser.Math.Clamp(300 - this.elapsedTime, 50, 300),
 			callback: this.spawnEnemyAtBorders,
 			callbackScope: this,
 			loop: true,
@@ -153,6 +169,14 @@ export default class GameScene extends Phaser.Scene {
 			callbackScope: this,
 			loop: true,
 		});
+
+		// 게임 상태 표시
+		this.infoText = this.add.text(this.game.scale.width - 10, 10, '', {
+			fontSize: '16px',
+			color: '#ffffff',
+			align: 'left',
+		});
+		this.infoText.setOrigin(1, 0); // 우측 상단에 정렬하기 위해 origin 설정
 	}
 
 	update(time: number, delta: number) {
@@ -161,6 +185,12 @@ export default class GameScene extends Phaser.Scene {
 		const gameHeight = this.game.scale.height;
 
 		this.elapsedTime += delta / 1000; // ms를 초로 변환
+
+		// 화면 밖 허용되는 거리
+		const maxAllowedDistance = Math.sqrt(
+			this.game.scale.width * this.game.scale.width +
+				this.game.scale.height * this.game.scale.height
+		);
 
 		// 플레이어의 움직임에 따른 속도 조정
 		if (this.cursors.left.isDown) {
@@ -234,8 +264,21 @@ export default class GameScene extends Phaser.Scene {
 		// 모든 적과 총알에 대해 playerVelocityX, playerVelocityY 값을 반영하여 이동시킴
 		this.enemies.children.each((gameObject: Phaser.GameObjects.GameObject) => {
 			const enemy = gameObject as Phaser.Physics.Arcade.Sprite;
+			const distanceToPlayer = Phaser.Math.Distance.Between(
+				this.player.x,
+				this.player.y,
+				enemy.x,
+				enemy.y
+			);
 			enemy.x -= this.playerVelocityX * deltaInSeconds;
 			enemy.y -= this.playerVelocityY * deltaInSeconds;
+
+			if (distanceToPlayer > maxAllowedDistance) {
+				console.log('respawn!');
+				enemy.destroy();
+				this.spawnEnemyAtBorders();
+			}
+
 			return true;
 		});
 
@@ -261,6 +304,14 @@ export default class GameScene extends Phaser.Scene {
 
 			return true;
 		});
+
+		const enemyCount = this.enemies.countActive(true);
+		const infoString = `
+Elapsed Time: ${this.elapsedTime.toFixed(2)}s
+Enemies Killed: ${this.enemyKilled}
+Enemies Alive: ${enemyCount}
+`;
+		this.infoText.setText(infoString);
 	}
 
 	shootBullet() {
@@ -339,16 +390,23 @@ export default class GameScene extends Phaser.Scene {
 		}
 
 		const enemy = this.enemies.create(x, y, 'enemy');
-		enemy.setData('hp', 3); // 적의 HP 설정. 필요에 따라 변경 가능
+		enemy.setData('hp', 2 + Math.floor(this.elapsedTime / 20)); // 적의 HP 설정. 필요에 따라 변경 가능
 
-		const angleToPlayer = Phaser.Math.Angle.Between(
-			x,
-			y,
-			this.player.x,
-			this.player.y
-		);
+		const radius =
+			(1 / 3) *
+			Math.sqrt(
+				this.game.scale.width * this.game.scale.width +
+					this.game.scale.height * this.game.scale.height
+			);
+		const randomRadius = Math.random() * radius;
+		const randomAngle = Math.random() * (2 * Math.PI);
 
-		const speed = 100; // 적의 속도. 이 값을 조절하여 원하는 속도로 설정할 수 있습니다.
+		const targetX = this.player.x + randomRadius * Math.cos(randomAngle);
+		const targetY = this.player.y + randomRadius * Math.sin(randomAngle);
+
+		const angleToPlayer = Phaser.Math.Angle.Between(x, y, targetX, targetY);
+
+		const speed = 100 + this.elapsedTime * 2; // 적의 속도. 이 값을 조절하여 원하는 속도로 설정할 수 있습니다.
 		enemy.setVelocity(
 			speed * Math.cos(angleToPlayer),
 			speed * Math.sin(angleToPlayer)
