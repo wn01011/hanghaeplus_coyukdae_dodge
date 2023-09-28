@@ -21,6 +21,7 @@ export default class GameScene extends Phaser.Scene {
 	enemyBaseDamage: number = 1;
 	enemyBaseHp: number = 2;
 	enemyKilled: number = 0;
+	score: number = 0;
 
 	constructor() {
 		super({ key: 'GameScene' });
@@ -40,6 +41,7 @@ export default class GameScene extends Phaser.Scene {
 
 		this.elapsedTime = 0;
 		this.enemyKilled = 0;
+		this.score = 0;
 	}
 
 	preload() {
@@ -150,6 +152,7 @@ export default class GameScene extends Phaser.Scene {
 				this.scene.start('ScoreboardScene', {
 					elapsedTime: this.elapsedTime,
 					enemiesKilled: this.enemyKilled,
+					score: this.score,
 				});
 			}
 		});
@@ -306,10 +309,12 @@ export default class GameScene extends Phaser.Scene {
 		});
 
 		const enemyCount = this.enemies.countActive(true);
+		this.score = 1000 * this.elapsedTime + 100 * this.enemyKilled;
 		const infoString = `
 Elapsed Time: ${this.elapsedTime.toFixed(2)}s
 Enemies Killed: ${this.enemyKilled}
 Enemies Alive: ${enemyCount}
+Score: ${this.score.toFixed(0)}
 `;
 		this.infoText.setText(infoString);
 	}

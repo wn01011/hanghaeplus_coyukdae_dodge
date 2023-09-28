@@ -5,7 +5,7 @@ export default class ScoreboardScene extends Phaser.Scene {
 		super({ key: 'ScoreboardScene' });
 	}
 
-	create(data: { elapsedTime: number; enemiesKilled: number }) {
+	create(data: { elapsedTime: number; enemiesKilled: number; score: number }) {
 		this.add.text(
 			100,
 			100,
@@ -13,6 +13,9 @@ export default class ScoreboardScene extends Phaser.Scene {
 			{ color: '#fff' }
 		);
 		this.add.text(100, 130, `Enemies Killed: ${data.enemiesKilled}`, {
+			color: '#fff',
+		});
+		this.add.text(100, 160, `Score: ${data.score.toFixed(0)}`, {
 			color: '#fff',
 		});
 
