@@ -14,6 +14,9 @@ export default class GameScene extends Phaser.Scene {
 	ACCELERATION: number = 15; // 가속도 값
 
 	backgrounds: Phaser.GameObjects.TileSprite[][] = [];
+	card1!: Phaser.GameObjects.Image;
+	card2!: Phaser.GameObjects.Image;
+	card3!: Phaser.GameObjects.Image;
 
 	playerHp: number = 10;
 	elapsedTime: number = 0;
@@ -22,6 +25,14 @@ export default class GameScene extends Phaser.Scene {
 	enemyBaseHp: number = 2;
 	enemyKilled: number = 0;
 	score: number = 0;
+
+	playerExp: number = 0;
+	playerLevel: number = 1;
+	expForNextLevel: number = 10; // 다음 레벨로 가기 위한 경험치
+
+	isPaused: boolean = false;
+	spawnEnemyTimer!: Phaser.Time.TimerEvent;
+	shootBulletTimer!: Phaser.Time.TimerEvent;
 
 	constructor() {
 		super({ key: 'GameScene' });
@@ -42,6 +53,12 @@ export default class GameScene extends Phaser.Scene {
 		this.elapsedTime = 0;
 		this.enemyKilled = 0;
 		this.score = 0;
+
+		this.playerExp = 0;
+		this.playerLevel = 1;
+		this.expForNextLevel = 10; // 다음 레벨로 가기 위한 경험치
+
+		this.isPaused = false;
 	}
 
 	preload() {
@@ -49,6 +66,10 @@ export default class GameScene extends Phaser.Scene {
 		this.load.image('bullet', 'path_to_bullet_image.png');
 		this.load.image('enemy', 'path_to_enemy_image.png');
 		this.load.image('background', '/source/seamlessImage.png');
+
+		this.load.image('card1', '/source/card.png');
+		this.load.image('card2', '/source/card.png');
+		this.load.image('card3', '/source/card.png');
 
 		const graphics = this.add.graphics();
 		graphics.fillStyle(0xffffff); // 원의 색상 설정 (여기서는 흰색으로 설정)
@@ -111,6 +132,7 @@ export default class GameScene extends Phaser.Scene {
 
 			if (enemyHp <= 0) {
 				this.enemyKilled++;
+				this.increaseExp(1 + Math.floor(this.elapsedTime / 60));
 				enemySprite.destroy();
 			} else {
 				enemySprite.setData('hp', enemyHp);
@@ -128,6 +150,7 @@ export default class GameScene extends Phaser.Scene {
 
 			if (enemyHp <= 0) {
 				this.enemyKilled++;
+				this.increaseExp(1 + Math.floor(this.elapsedTime / 60));
 				enemySprite.destroy();
 			} else {
 				enemySprite.setData('hp', enemyHp);
@@ -158,7 +181,7 @@ export default class GameScene extends Phaser.Scene {
 		});
 
 		// 적 생성 로직 (예: 일정 시간 간격으로 화면 사방에서 생성)
-		this.time.addEvent({
+		this.spawnEnemyTimer = this.time.addEvent({
 			delay: Phaser.Math.Clamp(300 - this.elapsedTime, 50, 300),
 			callback: this.spawnEnemyAtBorders,
 			callbackScope: this,
@@ -166,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
 		});
 
 		// 자동으로 총알 발사 설정
-		this.time.addEvent({
+		this.shootBulletTimer = this.time.addEvent({
 			delay: 500,
 			callback: this.shootBulletToClosestEnemy,
 			callbackScope: this,
@@ -194,72 +217,73 @@ export default class GameScene extends Phaser.Scene {
 			this.game.scale.width * this.game.scale.width +
 				this.game.scale.height * this.game.scale.height
 		);
+		if (!this.isPaused) {
+			// 플레이어의 움직임에 따른 속도 조정
+			if (this.cursors.left.isDown) {
+				this.playerVelocityX = Phaser.Math.Clamp(
+					this.playerVelocityX - this.ACCELERATION,
+					-this.MAX_SPEED,
+					this.MAX_SPEED
+				);
+			} else if (this.cursors.right.isDown) {
+				this.playerVelocityX = Phaser.Math.Clamp(
+					this.playerVelocityX + this.ACCELERATION,
+					-this.MAX_SPEED,
+					this.MAX_SPEED
+				);
+			} else {
+				// 속도를 천천히 0으로 감소시키기
+				this.playerVelocityX -=
+					this.ACCELERATION *
+					10 *
+					Math.sign(this.playerVelocityX) *
+					deltaInSeconds;
+			}
 
-		// 플레이어의 움직임에 따른 속도 조정
-		if (this.cursors.left.isDown) {
-			this.playerVelocityX = Phaser.Math.Clamp(
-				this.playerVelocityX - this.ACCELERATION,
-				-this.MAX_SPEED,
-				this.MAX_SPEED
-			);
-		} else if (this.cursors.right.isDown) {
-			this.playerVelocityX = Phaser.Math.Clamp(
-				this.playerVelocityX + this.ACCELERATION,
-				-this.MAX_SPEED,
-				this.MAX_SPEED
-			);
-		} else {
-			// 속도를 천천히 0으로 감소시키기
-			this.playerVelocityX -=
-				this.ACCELERATION *
-				10 *
-				Math.sign(this.playerVelocityX) *
-				deltaInSeconds;
-		}
+			if (this.cursors.up.isDown) {
+				this.playerVelocityY = Phaser.Math.Clamp(
+					this.playerVelocityY - this.ACCELERATION,
+					-this.MAX_SPEED,
+					this.MAX_SPEED
+				);
+			} else if (this.cursors.down.isDown) {
+				this.playerVelocityY = Phaser.Math.Clamp(
+					this.playerVelocityY + this.ACCELERATION,
+					-this.MAX_SPEED,
+					this.MAX_SPEED
+				);
+			} else {
+				// 속도를 천천히 0으로 감소시키기
+				this.playerVelocityY -=
+					this.ACCELERATION *
+					10 *
+					Math.sign(this.playerVelocityY) *
+					deltaInSeconds;
+			}
 
-		if (this.cursors.up.isDown) {
-			this.playerVelocityY = Phaser.Math.Clamp(
-				this.playerVelocityY - this.ACCELERATION,
-				-this.MAX_SPEED,
-				this.MAX_SPEED
-			);
-		} else if (this.cursors.down.isDown) {
-			this.playerVelocityY = Phaser.Math.Clamp(
-				this.playerVelocityY + this.ACCELERATION,
-				-this.MAX_SPEED,
-				this.MAX_SPEED
-			);
-		} else {
-			// 속도를 천천히 0으로 감소시키기
-			this.playerVelocityY -=
-				this.ACCELERATION *
-				10 *
-				Math.sign(this.playerVelocityY) *
-				deltaInSeconds;
-		}
+			// 배경 이동
+			const backgroundImage = this.textures.get('background').getSourceImage();
+			const originalWidth = backgroundImage.width;
+			const originalHeight = backgroundImage.height;
 
-		// 배경 이동
-		const backgroundImage = this.textures.get('background').getSourceImage();
-		const originalWidth = backgroundImage.width;
-		const originalHeight = backgroundImage.height;
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					this.backgrounds[i][j].x -= this.playerVelocityX * deltaInSeconds;
+					this.backgrounds[i][j].y -= this.playerVelocityY * deltaInSeconds;
 
-		for (let i = 0; i < 3; i++) {
-			for (let j = 0; j < 3; j++) {
-				this.backgrounds[i][j].x -= this.playerVelocityX * deltaInSeconds;
-				this.backgrounds[i][j].y -= this.playerVelocityY * deltaInSeconds;
+					// 배경 재배치: x축
+					if (this.backgrounds[i][j].x < -originalWidth) {
+						this.backgrounds[i][j].x += 3 * originalWidth;
+					} else if (this.backgrounds[i][j].x > 2 * originalWidth) {
+						this.backgrounds[i][j].x -= 3 * originalWidth;
+					}
 
-				// 배경 재배치: x축
-				if (this.backgrounds[i][j].x < -originalWidth) {
-					this.backgrounds[i][j].x += 3 * originalWidth;
-				} else if (this.backgrounds[i][j].x > 2 * originalWidth) {
-					this.backgrounds[i][j].x -= 3 * originalWidth;
-				}
-
-				// 배경 재배치: y축
-				if (this.backgrounds[i][j].y < -originalHeight) {
-					this.backgrounds[i][j].y += 3 * originalHeight;
-				} else if (this.backgrounds[i][j].y > 2 * originalHeight) {
-					this.backgrounds[i][j].y -= 3 * originalHeight;
+					// 배경 재배치: y축
+					if (this.backgrounds[i][j].y < -originalHeight) {
+						this.backgrounds[i][j].y += 3 * originalHeight;
+					} else if (this.backgrounds[i][j].y > 2 * originalHeight) {
+						this.backgrounds[i][j].y -= 3 * originalHeight;
+					}
 				}
 			}
 		}
@@ -267,6 +291,16 @@ export default class GameScene extends Phaser.Scene {
 		// 모든 적과 총알에 대해 playerVelocityX, playerVelocityY 값을 반영하여 이동시킴
 		this.enemies.children.each((gameObject: Phaser.GameObjects.GameObject) => {
 			const enemy = gameObject as Phaser.Physics.Arcade.Sprite;
+
+			if (this.isPaused) {
+				enemy.setVelocity(0, 0);
+				return true;
+			} else {
+				// 게임이 재개될 때 적의 원래 속도로 복원
+				const originalVelocity = enemy.getData('originalVelocity');
+				enemy.setVelocity(originalVelocity.x, originalVelocity.y);
+			}
+
 			const distanceToPlayer = Phaser.Math.Distance.Between(
 				this.player.x,
 				this.player.y,
@@ -287,6 +321,15 @@ export default class GameScene extends Phaser.Scene {
 
 		this.bullets.children.each((gameObject: Phaser.GameObjects.GameObject) => {
 			const bullet = gameObject as Phaser.Physics.Arcade.Sprite;
+			if (this.isPaused) {
+				bullet.setVelocity(0, 0);
+				return true;
+			} else {
+				// 게임이 재개될 때 총알의 원래 속도로 복원
+				const originalVelocity = bullet.getData('originalVelocity');
+				bullet.setVelocity(originalVelocity.x, originalVelocity.y);
+			}
+
 			bullet.x -= this.playerVelocityX * deltaInSeconds;
 			bullet.y -= this.playerVelocityY * deltaInSeconds;
 			return true;
@@ -295,7 +338,6 @@ export default class GameScene extends Phaser.Scene {
 		// 총알이 화면 밖으로 나가면 제거
 		this.bullets.children.each((gameObject: Phaser.GameObjects.GameObject) => {
 			let bullet = gameObject as Phaser.Physics.Arcade.Sprite;
-
 			if (
 				bullet.x < 0 ||
 				bullet.x > gameWidth ||
@@ -416,6 +458,12 @@ Score: ${this.score.toFixed(0)}
 			speed * Math.cos(angleToPlayer),
 			speed * Math.sin(angleToPlayer)
 		);
+
+		// 적의 원래 속도를 데이터로 저장
+		enemy.setData('originalVelocity', {
+			x: enemy.body.velocity.x,
+			y: enemy.body.velocity.y,
+		});
 	}
 
 	shootBulletToClosestEnemy() {
@@ -454,6 +502,104 @@ Score: ${this.score.toFixed(0)}
 			);
 			const speed = 1000; // 총알의 속도를 설정합니다. 이 값을 조절하여 원하는 속도로 설정할 수 있습니다.
 			bullet.setVelocity(speed * Math.cos(angle), speed * Math.sin(angle));
+
+			// 총알의 원래 속도 저장
+			bullet.setData('originalVelocity', {
+				x: bullet.body.velocity.x,
+				y: bullet.body.velocity.y,
+			});
 		}
+	}
+
+	increaseExp(amount: number) {
+		this.playerExp += amount;
+		console.log(this.playerExp, this.expForNextLevel);
+		if (this.playerExp >= this.expForNextLevel) {
+			this.playerLevel++;
+			this.playerExp -= this.expForNextLevel;
+			this.expForNextLevel *= 1.5; // 다음 레벨로 가기 위한 경험치 증가
+			this.showUpgradeCards();
+		}
+	}
+
+	showUpgradeCards() {
+		const gameWidth = this.game.scale.width;
+		const gameHeight = this.game.scale.height;
+
+		// 카드 크기 설정
+		const cardWidth = gameWidth * 0.25;
+		const cardHeight = gameHeight * 0.5;
+		console.log(cardWidth, cardHeight);
+		const cardHitArea = new Phaser.Geom.Rectangle(0, 0, cardWidth, cardHeight);
+
+		// 3개의 카드를 화면에 표시
+		this.card1 = this.add
+			.image(gameWidth * 0.15, gameHeight * 0.5, 'card1')
+			.setInteractive(cardHitArea, Phaser.Geom.Rectangle.Contains);
+		this.card1.displayWidth = cardWidth;
+		this.card1.displayHeight = cardHeight;
+
+		this.card2 = this.add
+			.image(gameWidth * 0.5, gameHeight * 0.5, 'card2')
+			.setInteractive(cardHitArea, Phaser.Geom.Rectangle.Contains);
+		this.card2.displayWidth = cardWidth;
+		this.card2.displayHeight = cardHeight;
+
+		this.card3 = this.add
+			.image(gameWidth * 0.85, gameHeight * 0.5, 'card3')
+			.setInteractive(cardHitArea, Phaser.Geom.Rectangle.Contains);
+		this.card3.displayWidth = cardWidth;
+		this.card3.displayHeight = cardHeight;
+
+		this.card1.setDepth(10);
+		this.card2.setDepth(10);
+		this.card3.setDepth(10);
+
+		this.card1.on('pointerdown', () => {
+			this.applyUpgrade('upgrade1');
+		});
+		this.card2.on('pointerdown', () => {
+			this.applyUpgrade('upgrade2');
+		});
+		this.card3.on('pointerdown', () => {
+			this.applyUpgrade('upgrade3');
+		});
+
+		// 게임 일시 중지
+		this.isPaused = true;
+		this.spawnEnemyTimer.paused = true;
+		this.shootBulletTimer.paused = true;
+	}
+
+	applyUpgrade(upgradeType: string) {
+		switch (upgradeType) {
+			case 'upgrade1':
+				console.log('upgrade1');
+				// 능력 업그레이드 코드
+				break;
+			case 'upgrade2':
+				console.log('upgrade2');
+				// 능력 업그레이드 코드
+				break;
+			case 'upgrade3':
+				console.log('upgrade3');
+				// 능력 업그레이드 코드
+				break;
+		}
+
+		// 업그레이드 카드 UI 제거
+		this.clearUpgradeCards();
+
+		// 게임 재개
+		this.isPaused = false;
+		this.spawnEnemyTimer.paused = false;
+		this.shootBulletTimer.paused = false;
+	}
+
+	clearUpgradeCards() {
+		// 카드 이미지 개별 삭제
+		this.card1.destroy();
+		this.card2.destroy();
+		this.card3.destroy();
 	}
 }
