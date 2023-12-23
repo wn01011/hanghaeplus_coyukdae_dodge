@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/snowflake/static/css/main.435d5fe5.chunk.css",
+    "main.js": "/snowflake/static/js/main.26948cee.chunk.js",
+    "main.js.map": "/snowflake/static/js/main.26948cee.chunk.js.map",
+    "runtime~main.js": "/snowflake/static/js/runtime~main.0cb8b5ba.js",
+    "runtime~main.js.map": "/snowflake/static/js/runtime~main.0cb8b5ba.js.map",
+    "static/js/2.a71b1702.chunk.js": "/snowflake/static/js/2.a71b1702.chunk.js",
+    "static/js/2.a71b1702.chunk.js.map": "/snowflake/static/js/2.a71b1702.chunk.js.map",
+    "static/js/3.a29efab2.chunk.js": "/snowflake/static/js/3.a29efab2.chunk.js",
+    "static/js/3.a29efab2.chunk.js.map": "/snowflake/static/js/3.a29efab2.chunk.js.map",
+    "index.html": "/snowflake/index.html",
+    "precache-manifest.e55de6a9ce3e1faa82b82f29e7c1ffb7.js": "/snowflake/precache-manifest.e55de6a9ce3e1faa82b82f29e7c1ffb7.js",
+    "service-worker.js": "/snowflake/service-worker.js",
+    "static/css/main.435d5fe5.chunk.css.map": "/snowflake/static/css/main.435d5fe5.chunk.css.map",
+    "static/media/logo.svg": "/snowflake/static/media/logo.06e73328.svg"
+  }
+}
