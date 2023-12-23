@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/hanghaeplus_coyukdae_snowflake/precache-manifest.d3742afdd74db381752bf62bb8f713ff.js"
+  "/hanghaeplus_coyukdae_snowflake/precache-manifest.20aaee4df782bebee28995fe82a1f718.js"
 );
 
 self.addEventListener('message', (event) => {
