@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/snowflake/static/css/main.435d5fe5.chunk.css",
-    "main.js": "/snowflake/static/js/main.26948cee.chunk.js",
-    "main.js.map": "/snowflake/static/js/main.26948cee.chunk.js.map",
-    "runtime~main.js": "/snowflake/static/js/runtime~main.0cb8b5ba.js",
-    "runtime~main.js.map": "/snowflake/static/js/runtime~main.0cb8b5ba.js.map",
-    "static/js/2.a71b1702.chunk.js": "/snowflake/static/js/2.a71b1702.chunk.js",
-    "static/js/2.a71b1702.chunk.js.map": "/snowflake/static/js/2.a71b1702.chunk.js.map",
-    "static/js/3.a29efab2.chunk.js": "/snowflake/static/js/3.a29efab2.chunk.js",
-    "static/js/3.a29efab2.chunk.js.map": "/snowflake/static/js/3.a29efab2.chunk.js.map",
-    "index.html": "/snowflake/index.html",
-    "precache-manifest.e55de6a9ce3e1faa82b82f29e7c1ffb7.js": "/snowflake/precache-manifest.e55de6a9ce3e1faa82b82f29e7c1ffb7.js",
-    "service-worker.js": "/snowflake/service-worker.js",
-    "static/css/main.435d5fe5.chunk.css.map": "/snowflake/static/css/main.435d5fe5.chunk.css.map",
-    "static/media/logo.svg": "/snowflake/static/media/logo.06e73328.svg"
+    "main.css": "/hanghaeplus_coyukdae_snowflake/static/css/main.435d5fe5.chunk.css",
+    "main.js": "/hanghaeplus_coyukdae_snowflake/static/js/main.ff808c06.chunk.js",
+    "main.js.map": "/hanghaeplus_coyukdae_snowflake/static/js/main.ff808c06.chunk.js.map",
+    "runtime~main.js": "/hanghaeplus_coyukdae_snowflake/static/js/runtime~main.a62827d9.js",
+    "runtime~main.js.map": "/hanghaeplus_coyukdae_snowflake/static/js/runtime~main.a62827d9.js.map",
+    "static/js/2.a2b181a3.chunk.js": "/hanghaeplus_coyukdae_snowflake/static/js/2.a2b181a3.chunk.js",
+    "static/js/2.a2b181a3.chunk.js.map": "/hanghaeplus_coyukdae_snowflake/static/js/2.a2b181a3.chunk.js.map",
+    "static/js/3.a29efab2.chunk.js": "/hanghaeplus_coyukdae_snowflake/static/js/3.a29efab2.chunk.js",
+    "static/js/3.a29efab2.chunk.js.map": "/hanghaeplus_coyukdae_snowflake/static/js/3.a29efab2.chunk.js.map",
+    "index.html": "/hanghaeplus_coyukdae_snowflake/index.html",
+    "precache-manifest.d3742afdd74db381752bf62bb8f713ff.js": "/hanghaeplus_coyukdae_snowflake/precache-manifest.d3742afdd74db381752bf62bb8f713ff.js",
+    "service-worker.js": "/hanghaeplus_coyukdae_snowflake/service-worker.js",
+    "static/css/main.435d5fe5.chunk.css.map": "/hanghaeplus_coyukdae_snowflake/static/css/main.435d5fe5.chunk.css.map",
+    "static/media/logo.svg": "/hanghaeplus_coyukdae_snowflake/static/media/logo.06e73328.svg"
   }
 }
